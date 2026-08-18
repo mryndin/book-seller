@@ -20,33 +20,35 @@ class ImageHelper
     public static function getUrl(int $id, string $entity, string $size = 'original'): string
     {
         $basePath = self::getUploadPath($id, $entity);
-
-        // Проверяем, какой файл существует
         $webRoot = \Yii::getAlias('@frontend/web');
 
-        if (file_exists($webRoot . "/{$basePath}/original.jpg")) {
-            return "/{$basePath}/original.jpg";
-        } elseif (file_exists($webRoot . "/{$basePath}/original.png")) {
-            return "/{$basePath}/original.png";
-        } elseif (file_exists($webRoot . "/{$basePath}/original.gif")) {
-            return "/{$basePath}/original.gif";
+        if ($size === 'original') {
+            if (file_exists($webRoot . "/{$basePath}/original.jpg")) {
+                return "/{$basePath}/original.jpg";
+            } elseif (file_exists($webRoot . "/{$basePath}/original.png")) {
+                return "/{$basePath}/original.png";
+            } elseif (file_exists($webRoot . "/{$basePath}/original.gif")) {
+                return "/{$basePath}/original.gif";
+            } elseif (file_exists($webRoot . "/{$basePath}/original.webp")) {
+                return "/{$basePath}/original.webp";
+            }
+        } else {
+            // thumbnail
+            if (file_exists($webRoot . "/{$basePath}/thumb.jpg")) {
+                return "/{$basePath}/thumb.jpg";
+            } elseif (file_exists($webRoot . "/{$basePath}/thumb.png")) {
+                return "/{$basePath}/thumb.png";
+            } elseif (file_exists($webRoot . "/{$basePath}/thumb.webp")) {
+                return "/{$basePath}/thumb.webp";
+            }
         }
 
-        return "/{$basePath}/original.jpg"; // fallback
+        return "/{$basePath}/{$size}.jpg"; // fallback
     }
 
     public static function getThumbUrl(int $id, string $entity): string
     {
-        $basePath = self::getUploadPath($id, $entity);
-        $webRoot = \Yii::getAlias('@frontend/web');
-
-        if (file_exists($webRoot . "/{$basePath}/thumb.jpg")) {
-            return "/{$basePath}/thumb.jpg";
-        } elseif (file_exists($webRoot . "/{$basePath}/thumb.png")) {
-            return "/{$basePath}/thumb.png";
-        }
-
-        return "/{$basePath}/thumb.jpg"; // fallback
+        return self::getUrl($id, $entity, 'thumb');
     }
 
     public static function saveImage(UploadedFile $file, int $id, string $entity): void
