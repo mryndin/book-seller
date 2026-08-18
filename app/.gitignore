@@ -1,0 +1,35 @@
+# Dependencies
+/vendor/
+/node_modules/
+/composer.phar
+
+# Runtime data
+/frontend/runtime/
+/backend/runtime/
+/common/runtime/
+/console/runtime/
+
+# Web assets
+/frontend/web/assets/
+/backend/web/assets/
+
+# Local configuration files
+/common/config/main-local.php
+/common/config/params-local.php
+/common/config/test-local.php
+/frontend/config/main-local.php
+/frontend/config/params-local.php
+/frontend/config/test-local.php
+/backend/config/main-local.php
+/backend/config/params-local.php
+/backend/config/test-local.php
+/console/config/main-local.php
+/console/config/params-local.php
+/console/config/test-local.php
+
+# Uploaded files
+/frontend/web/uploads/
+/backend/web/uploads/
+
+# Yii console executable
+/yii
