@@ -1,0 +1,17 @@
+# Docker volumes
+docker/mariadb_data/
+
+# Logs
+*.log
+
+# PHPStorm / JetBrains IDEs
+.idea/
+*.iml
+.phpstorm.meta.php/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db

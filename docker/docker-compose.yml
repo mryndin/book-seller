@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: book_seller_nginx
+    ports:
+      - "9080:80"
+      - "9081:81"
+    volumes:
+      - ../app:/var/www/app
+      - ./nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - php
+    networks:
+      - app-network
+
+  php:
+    build:
+      context: ./php
+    container_name: book_seller_php
+    volumes:
+      - ../app:/var/www/app
+    environment:
+      - DB_HOST=mariadb
+      - DB_NAME=yii2advanced
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+    networks:
+      - app-network
+    depends_on:
+      - mariadb
+      - rabbitmq
+
+  mariadb:
+    image: mariadb:10.11
+    container_name: book_seller_mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: yii2advanced
+    ports:
+      - "3307:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - app-network
+
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: book_seller_rabbitmq
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - app-network
+
+volumes:
+  mariadb_data:
+
+networks:
+  app-network:
+    driver: bridge
