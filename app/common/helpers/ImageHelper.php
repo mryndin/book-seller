@@ -2,7 +2,6 @@
 
 namespace common\helpers;
 
-use Imagine\Image\Box;
 use yii\imagine\Image;
 use yii\web\UploadedFile;
 
