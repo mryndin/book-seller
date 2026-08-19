@@ -28,8 +28,7 @@
 /console/config/test-local.php
 
 # Uploaded files
-/frontend/web/uploads/
-/backend/web/uploads/
+/uploads/
 
 # Yii console executable
 /yii

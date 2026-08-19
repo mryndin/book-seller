@@ -17,6 +17,7 @@ class SignupForm extends Model
     public string $username = '';
     public string $email = '';
     public string $password = '';
+    public string $phone = '';
     /**
      * {@inheritdoc}
      */
@@ -36,6 +37,11 @@ class SignupForm extends Model
 
             ['password', 'required'],
             ['password', 'string', 'min' => Yii::$app->params['user.passwordMinLength']],
+
+            ['phone', 'trim'],
+            ['phone', 'required'],
+            ['phone', 'string', 'max' => 20],
+            ['phone', 'match', 'pattern' => '/^\+?\d{1,3}?[- .]?\(?\d{1,4}?\)?[- .]?\d{1,4}[- .]?\d{1,9}$/', 'message' => 'Ошибка формата номера телефона.'],
         ];
     }
 
@@ -66,7 +72,12 @@ class SignupForm extends Model
         // @todo: change to STATUS_WAITING_FOR_CONFIRMATION if email confirmation is required
         $user->status = User::STATUS_ACTIVE;
 
-        return $user->save() && $this->sendEmail($mailer, $user, $supportEmail, $appName);
+        // Save phone number
+        $user->phone = $this->phone;
+
+        return $user->save();
+        // никто ничего не отправляет, так как подтверждение по email не требуется
+            //&& $this->sendEmail($mailer, $user, $supportEmail, $appName);
     }
 
     /**
