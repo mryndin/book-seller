@@ -1,0 +1,67 @@
+<?php
+use common\helpers\ImageHelper;
+use yii\helpers\Html;
+use yii\widgets\ListView;
+
+/** @var common\models\Author $model */
+/** @var yii\data\ActiveDataProvider $booksProvider */
+
+$this->title = $model->name;
+
+// Проверяем существование файла через UPLOAD_ROOT
+$uploadPath = ImageHelper::UPLOAD_ROOT . '/' . ltrim(ImageHelper::getUploadPath($model->id, 'author'), '/');
+$hasImage = false;
+foreach (['jpg', 'png', 'gif', 'webp'] as $ext) {
+    if (file_exists("{$uploadPath}/original.{$ext}")) {
+        $hasImage = true;
+        break;
+    }
+}
+?>
+
+    <h1><?= Html::encode($model->name) ?></h1>
+
+    <div style="margin-bottom: 30px;">
+        <?php if ($hasImage): ?>
+            <img src="<?= ImageHelper::getUrl($model->id, 'author') ?>"
+                 alt="<?= Html::encode($model->name) ?>"
+                 style="max-width: 200px; height: auto; margin-bottom: 15px; border-radius: 50%; border: 3px solid #e9ecef;">
+        <?php endif; ?>
+
+        <!-- Кнопка подписки -->
+        <?php if (Yii::$app->user->isGuest): ?>
+            <!-- Гость - показываем форму с телефоном -->
+            <div style="background: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                <h3>Подписаться на новые книги</h3>
+                <?php $form = \yii\widgets\ActiveForm::begin(['method' => 'post', 'action' => ['subscribe', 'id' => $model->id]]); ?>
+                <input type="text" name="phone" placeholder="+7 (999) 123-45-67" class="form-control" style="margin-bottom: 10px;" required>
+                <button type="submit" class="btn btn-success">Подписаться</button>
+                <?php \yii\widgets\ActiveForm::end(); ?>
+            </div>
+        <?php else: ?>
+            <!-- Авторизованный пользователь - просто кнопка -->
+            <div style="margin-bottom: 20px;">
+                <?php $subscribed = \common\models\Subscription::find()
+                    ->where(['author_id' => $model->id, 'user_id' => Yii::$app->user->id])
+                    ->exists(); ?>
+
+                <?php if ($subscribed): ?>
+                    <span class="btn btn-success disabled">Вы подписаны</span>
+                <?php else: ?>
+                    <?php $form = \yii\widgets\ActiveForm::begin(['method' => 'post', 'action' => ['subscribe', 'id' => $model->id]]); ?>
+                    <button type="submit" class="btn btn-success">Подписаться на автора</button>
+                    <?php \yii\widgets\ActiveForm::end(); ?>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
+    </div>
+
+    <h2>Книги автора</h2>
+<?= ListView::widget([
+    'dataProvider' => $booksProvider,
+    'itemOptions' => ['class' => 'item'],
+    'layout' => "{items}\n{pager}",
+    'itemView' => function ($model, $key, $index, $widget) {
+        return $this->render('/book/_book-card', ['model' => $model]);
+    },
+]); ?>

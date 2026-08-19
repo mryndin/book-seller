@@ -14,11 +14,16 @@ use yii\db\ActiveRecord;
  * @property string|null $photo
  * @property int $created_at
  * @property int $updated_at
+ * @property string|null $imageFile
+ * @property array $author_ids
  *
  * @property Author[] $authors
  */
 class Book extends ActiveRecord
 {
+    public $imageFile;
+    public $author_ids = [];
+
     public static function tableName()
     {
         return '{{%book}}';
@@ -35,10 +40,10 @@ class Book extends ActiveRecord
     {
         return [
             [['title', 'year'], 'required'],
-            [['year'], 'integer', 'min' => 1000, 'max' => date('Y')],
+            [['year'], 'integer', 'min' => 1000, 'max' => (int)date('Y') + 1],
             [['title', 'isbn', 'photo'], 'string', 'max' => 255],
-            [['isbn'], 'string', 'max' => 20],
             [['description'], 'string'],
+            [['imageFile', 'author_ids'], 'safe'],
         ];
     }
 
@@ -51,6 +56,8 @@ class Book extends ActiveRecord
             'description' => 'Описание',
             'isbn' => 'ISBN',
             'photo' => 'Фото',
+            'imageFile' => 'Фото',
+            'author_ids' => 'Авторы',
             'created_at' => 'Создано',
             'updated_at' => 'Обновлено',
         ];

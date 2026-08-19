@@ -63,6 +63,9 @@ class SignupForm extends Model
         $user->generateAuthKey();
         $user->generateEmailVerificationToken();
 
+        // @todo: change to STATUS_WAITING_FOR_CONFIRMATION if email confirmation is required
+        $user->status = User::STATUS_ACTIVE;
+
         return $user->save() && $this->sendEmail($mailer, $user, $supportEmail, $appName);
     }
 

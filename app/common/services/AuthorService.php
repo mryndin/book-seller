@@ -28,7 +28,9 @@ class AuthorService
         
         if ($author->save()) {
             if (isset($data['imageFile']) && $data['imageFile'] instanceof UploadedFile) {
-                ImageHelper::saveImage($data['imageFile'], $author->id, 'author');
+                if (!ImageHelper::saveImage($data['imageFile'], $author->id, 'author')) {
+                    $author->addError('imageFile', 'Не удалось сохранить изображение.');
+                }
             }
             return $author;
         }
