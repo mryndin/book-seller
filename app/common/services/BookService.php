@@ -17,23 +17,20 @@ class BookService
         $transaction = Yii::$app->db->beginTransaction(Transaction::SERIALIZABLE);
         try {
             $book = new Book();
-            $book->title = $data['title'];
-            $book->year = $data['year'];
+            $book->title = $data['title'] ?? '';
+            $book->year = $data['year'] ?? date('Y');
             $book->description = $data['description'] ?? null;
             $book->isbn = $data['isbn'] ?? null;
-            $book->quantity = $data['quantity'] ?? 0;
 
             if ($book->save()) {
                 if (isset($data['imageFile']) && $data['imageFile'] instanceof UploadedFile) {
                     ImageHelper::saveImage($data['imageFile'], $book->id, 'book');
                 }
-                
+
                 $this->syncAuthors($book, $data['author_ids'] ?? []);
-                
-                // Триггер SMS если книг стало больше 0 (для создания всегда 0, но на будущее)
-                if ($book->quantity > 0) {
-                    $this->notifySubscribers($book);
-                }
+
+                // Триггер SMS при создании книги
+                $this->notifySubscribers($book);
 
                 $transaction->commit();
                 return $book;
@@ -50,25 +47,17 @@ class BookService
     {
         $transaction = Yii::$app->db->beginTransaction(Transaction::SERIALIZABLE);
         try {
-            $oldQuantity = $book->getOldAttribute('quantity');
-            
-            $book->title = $data['title'];
-            $book->year = $data['year'];
-            $book->description = $data['description'] ?? null;
-            $book->isbn = $data['isbn'] ?? null;
-            $book->quantity = $data['quantity'] ?? 0;
+            $book->title = $data['title'] ?? $book->title;
+            $book->year = $data['year'] ?? $book->year;
+            $book->description = $data['description'] ?? $book->description;
+            $book->isbn = $data['isbn'] ?? $book->isbn;
 
             if ($book->save()) {
                 if (isset($data['imageFile']) && $data['imageFile'] instanceof UploadedFile) {
                     ImageHelper::saveImage($data['imageFile'], $book->id, 'book');
                 }
-                
-                $this->syncAuthors($book, $data['author_ids'] ?? []);
 
-                // Триггер: если было 0, а стало > 0
-                if ($oldQuantity == 0 && $book->quantity > 0) {
-                    $this->notifySubscribers($book);
-                }
+                $this->syncAuthors($book, $data['author_ids'] ?? []);
 
                 $transaction->commit();
                 return $book;
@@ -100,11 +89,9 @@ class BookService
 
     private function notifySubscribers(Book $book): void
     {
-        // Получаем ID авторов книги
         $authorIds = array_column($book->authors, 'id');
         if (empty($authorIds)) return;
 
-        // Ищем телефоны подписчиков (эффективный запрос)
         $phones = Subscription::find()
             ->select('phone')
             ->where(['author_id' => $authorIds])
@@ -113,7 +100,6 @@ class BookService
 
         if (!empty($phones)) {
             // TODO: Отправка в RabbitMQ
-            // Пока просто логируем, чтобы не блокировать разработку
             Yii::info("SMS trigger: " . count($phones) . " phones for book '{$book->title}'", 'sms');
         }
     }

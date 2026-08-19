@@ -88,9 +88,35 @@ class SiteController extends Controller
      *
      * @return string
      */
+    /**
+     * Displays homepage with Top 10 Authors of the Year.
+     *
+     * @return string
+     */
     public function actionIndex(): string
     {
-        return $this->render('index');
+        $currentYear = (int)date('Y');
+
+        // Получаем ТОП-10 авторов по количеству книг за текущий год
+        $topAuthors = (new \yii\db\Query())
+            ->select([
+                'a.id',
+                'a.name',
+                'book_count' => 'COUNT(b.id)'
+            ])
+            ->from(['a' => '{{%author}}'])
+            ->innerJoin(['ba' => '{{%book_author}}'], 'a.id = ba.author_id')
+            ->innerJoin(['b' => '{{%book}}'], 'b.id = ba.book_id')
+            ->where(['b.year' => $currentYear])
+            ->groupBy(['a.id', 'a.name'])
+            ->orderBy(['book_count' => SORT_DESC])
+            ->limit(10)
+            ->all();
+
+        return $this->render('index', [
+            'topAuthors' => $topAuthors,
+            'currentYear' => $currentYear,
+        ]);
     }
 
     /**
