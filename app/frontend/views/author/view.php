@@ -39,20 +39,33 @@ foreach (['jpg', 'png', 'gif', 'webp'] as $ext) {
                 <?php \yii\widgets\ActiveForm::end(); ?>
             </div>
         <?php else: ?>
-            <!-- Авторизованный пользователь - просто кнопка -->
-            <div style="margin-bottom: 20px;">
-                <?php $subscribed = \common\models\Subscription::find()
-                    ->where(['author_id' => $model->id, 'user_id' => Yii::$app->user->id])
-                    ->exists(); ?>
+            <!-- Авторизованный пользователь -->
+            <?php
+            $subscribed = \common\models\Subscription::find()
+                ->where(['author_id' => $model->id, 'user_id' => Yii::$app->user->id])
+                ->exists();
 
-                <?php if ($subscribed): ?>
-                    <span class="btn btn-success disabled">Вы подписаны</span>
+            $user = Yii::$app->user->identity;
+            ?>
+
+            <?php if ($subscribed): ?>
+                <span class="btn btn-success disabled">✔ Вы уже подписаны</span>
+            <?php else: ?>
+                <?php $form = \yii\widgets\ActiveForm::begin(['method' => 'post', 'action' => ['subscribe', 'id' => $model->id]]); ?>
+
+                <?php if (empty($user->phone)): ?>
+                    <!-- Если телефон не указан в профиле, просим ввести -->
+                    <p class="text-muted small">Укажите телефон для получения уведомлений:</p>
+                    <input type="text" name="phone" placeholder="+7 (999) 123-45-67" class="form-control mb-2" required>
                 <?php else: ?>
-                    <?php $form = \yii\widgets\ActiveForm::begin(['method' => 'post', 'action' => ['subscribe', 'id' => $model->id]]); ?>
-                    <button type="submit" class="btn btn-success">Подписаться на автора</button>
-                    <?php \yii\widgets\ActiveForm::end(); ?>
+                    <!-- Если телефон есть, показываем его и скрываем инпут -->
+                    <p class="text-muted small">Уведомления придут на: <strong><?= Html::encode($user->phone) ?></strong></p>
+                    <input type="hidden" name="phone" value="<?= Html::encode($user->phone) ?>">
                 <?php endif; ?>
-            </div>
+
+                <button type="submit" class="btn btn-success">Подписаться на автора</button>
+                <?php \yii\widgets\ActiveForm::end(); ?>
+            <?php endif; ?>
         <?php endif; ?>
     </div>
 

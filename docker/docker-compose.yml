@@ -1,5 +1,4 @@
 version: '3.8'
-
 services:
   nginx:
     image: nginx:alpine
@@ -33,6 +32,27 @@ services:
     depends_on:
       - mariadb
       - rabbitmq
+
+  sms-consumer:
+    build:
+      context: ./php
+    container_name: book_seller_sms_consumer
+    entrypoint: php /var/www/app/yii sms/consume
+    volumes:
+      - ../app:/var/www/app
+    environment:
+      - DB_HOST=mariadb
+      - DB_NAME=yii2advanced
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+    networks:
+      - app-network
+    depends_on:
+      - mariadb
+      - rabbitmq
+    restart: unless-stopped
 
   mariadb:
     image: mariadb:10.11

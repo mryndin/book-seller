@@ -20,7 +20,7 @@ class BookService
             $book->title = $data['title'] ?? '';
             $book->year = $data['year'] ?? date('Y');
             $book->description = $data['description'] ?? null;
-            $book->isbn = $data['isbn'] ?? null;
+            $book->isbn = !empty($data['isbn']) ? $data['isbn'] : null;
 
             if ($book->save()) {
                 if (isset($data['imageFile']) && $data['imageFile'] instanceof UploadedFile) {
@@ -29,12 +29,13 @@ class BookService
 
                 $this->syncAuthors($book, $data['author_ids'] ?? []);
 
-                // Триггер SMS при создании книги
+                // Триггер SMS при создании книги через RabbitMQ
                 $this->notifySubscribers($book);
 
                 $transaction->commit();
                 return $book;
             }
+
             $transaction->rollBack();
             return $book;
         } catch (\Exception $e) {
@@ -50,7 +51,7 @@ class BookService
             $book->title = $data['title'] ?? $book->title;
             $book->year = $data['year'] ?? $book->year;
             $book->description = $data['description'] ?? $book->description;
-            $book->isbn = $data['isbn'] ?? $book->isbn;
+            $book->isbn = !empty($data['isbn']) ? $data['isbn'] : null;
 
             if ($book->save()) {
                 if (isset($data['imageFile']) && $data['imageFile'] instanceof UploadedFile) {
@@ -62,6 +63,7 @@ class BookService
                 $transaction->commit();
                 return $book;
             }
+
             $transaction->rollBack();
             return $book;
         } catch (\Exception $e) {
@@ -90,7 +92,9 @@ class BookService
     private function notifySubscribers(Book $book): void
     {
         $authorIds = array_column($book->authors, 'id');
-        if (empty($authorIds)) return;
+        if (empty($authorIds)) {
+            return;
+        }
 
         $phones = Subscription::find()
             ->select('phone')
@@ -98,9 +102,16 @@ class BookService
             ->andWhere(['not', ['phone' => null]])
             ->column();
 
-        if (!empty($phones)) {
-            // TODO: Отправка в RabbitMQ
-            Yii::info("SMS trigger: " . count($phones) . " phones for book '{$book->title}'", 'sms');
+        if (empty($phones)) {
+            return;
+        }
+
+        try {
+            $producer = new SmsProducer();
+            $producer->notifyAboutNewBook($book->id, $authorIds, $phones);
+        } catch (\Exception $e) {
+            // Логируем, но не ломаем создание книги
+            Yii::error("RabbitMQ error: " . $e->getMessage(), 'rabbitmq');
         }
     }
 }
