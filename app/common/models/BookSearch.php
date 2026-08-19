@@ -5,8 +5,14 @@ namespace common\models;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
 
+/**
+ * BookSearch represents the model behind the search form of `common\models\Book`.
+ */
 class BookSearch extends Book
 {
+    /**
+     * {@inheritdoc}
+     */
     public function rules()
     {
         return [
@@ -15,11 +21,21 @@ class BookSearch extends Book
         ];
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function scenarios()
     {
         return Model::scenarios();
     }
 
+    /**
+     * Creates data provider instance with search query applied
+     *
+     * @param array $params
+     *
+     * @return ActiveDataProvider
+     */
     public function search($params)
     {
         $query = Book::find();

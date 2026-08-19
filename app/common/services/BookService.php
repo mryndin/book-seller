@@ -10,8 +10,18 @@ use Yii;
 use yii\db\Transaction;
 use yii\web\UploadedFile;
 
+/**
+ * Service class for managing books.
+ */
 class BookService
 {
+    /**
+     * Creates a new book with the provided data.
+     *
+     * @param array $data The data for creating the book.
+     * @return Book The created book instance.
+     * @throws \Exception If an error occurs during the transaction.
+     */
     public function create(array $data): Book
     {
         $transaction = Yii::$app->db->beginTransaction(Transaction::SERIALIZABLE);
@@ -44,6 +54,14 @@ class BookService
         }
     }
 
+    /**
+     * Updates an existing book with the provided data.
+     *
+     * @param Book $book The book instance to update.
+     * @param array $data The data for updating the book.
+     * @return Book The updated book instance.
+     * @throws \Exception If an error occurs during the transaction.
+     */
     public function update(Book $book, array $data): Book
     {
         $transaction = Yii::$app->db->beginTransaction(Transaction::SERIALIZABLE);
@@ -72,12 +90,24 @@ class BookService
         }
     }
 
+    /**
+     * Deletes a book and its associated image.
+     *
+     * @param Book $book The book instance to delete.
+     * @return bool True if the deletion was successful, false otherwise.
+     */
     public function delete(Book $book): bool
     {
         ImageHelper::deleteImage($book->id, 'book');
         return (bool)$book->delete();
     }
 
+    /**
+     * Synchronizes the authors associated with a book.
+     *
+     * @param Book $book The book instance.
+     * @param array $authorIds The array of author IDs to associate with the book.
+     */
     private function syncAuthors(Book $book, array $authorIds): void
     {
         $book->unlinkAll('authors', true);
@@ -89,6 +119,11 @@ class BookService
         }
     }
 
+    /**
+     * Notifies subscribers about a new book via SMS.
+     *
+     * @param Book $book The book instance for which to notify subscribers.
+     */
     private function notifySubscribers(Book $book): void
     {
         $authorIds = array_column($book->authors, 'id');

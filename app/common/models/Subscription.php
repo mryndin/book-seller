@@ -16,11 +16,17 @@ use yii\db\ActiveRecord;
  */
 class Subscription extends ActiveRecord
 {
+    /**
+     * {@inheritdoc}
+     */
     public static function tableName()
     {
         return '{{%subscription}}';
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function rules()
     {
         return [
@@ -33,6 +39,9 @@ class Subscription extends ActiveRecord
         ];
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function attributeLabels()
     {
         return [
@@ -44,11 +53,21 @@ class Subscription extends ActiveRecord
         ];
     }
 
+    /**
+     * Gets query for [[Author]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
     public function getAuthor()
     {
         return $this->hasOne(Author::class, ['id' => 'author_id']);
     }
 
+    /**
+     * Gets query for [[User]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
     public function getUser()
     {
         return $this->hasOne(User::class, ['id' => 'user_id']);

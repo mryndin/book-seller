@@ -4,18 +4,52 @@ namespace common\services;
 
 use Yii;
 
+use function getenv;
+use function json_encode;
+use function curl_init;
+use function curl_setopt;
+use function curl_exec;
+use function curl_getinfo;
+use function curl_error;
+use function curl_close;
+
+/**
+ * SmsSender is responsible for sending SMS messages using the SMSPilot API.
+ */
 class SmsSender
 {
+
+    /**
+     * @var string The URL of the SMSPilot API.
+     */
     private $apiUrl = 'https://smspilot.ru/api.php';
+
+    /**
+     * @var string The API key for the SMSPilot service.
+     */
     private $apiKey;
+
+    /**
+     * @var string The sender name for the SMS messages.
+     */
     private $senderName;
 
+    /**
+     * Initializes the SmsSender with the API key and sender name from the application parameters.
+     */
     public function __construct()
     {
         $this->apiKey = Yii::$app->params['smspilot']['api_key'] ?? '';
         $this->senderName = Yii::$app->params['smspilot']['sender_name'] ?? 'BookSeller';
     }
 
+    /**
+     * Sends an SMS message to the specified phone number.
+     *
+     * @param string $phone The recipient's phone number.
+     * @param string $message The message content.
+     * @return bool True if the message was sent successfully, false otherwise.
+     */
     public function send(string $phone, string $message): bool
     {
         if (empty($this->apiKey)) {
