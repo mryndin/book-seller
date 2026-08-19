@@ -21,14 +21,27 @@ use yii\db\ActiveRecord;
  */
 class Book extends ActiveRecord
 {
+    /**
+     * @var \yii\web\UploadedFile|null
+     */
     public $imageFile;
+
+    /**
+     * @var array
+     */
     public $author_ids = [];
 
+    /**
+     * {@inheritdoc}
+     */
     public static function tableName()
     {
         return '{{%book}}';
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function behaviors()
     {
         return [
@@ -36,6 +49,9 @@ class Book extends ActiveRecord
         ];
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function rules()
     {
         return [
@@ -47,6 +63,9 @@ class Book extends ActiveRecord
         ];
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function attributeLabels()
     {
         return [
@@ -63,6 +82,11 @@ class Book extends ActiveRecord
         ];
     }
 
+    /**
+     * Gets query for [[Authors]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
     public function getAuthors()
     {
         return $this->hasMany(Author::class, ['id' => 'author_id'])
